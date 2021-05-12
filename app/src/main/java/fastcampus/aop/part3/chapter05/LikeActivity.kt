@@ -1,7 +1,9 @@
 package fastcampus.aop.part3.chapter05
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -42,6 +44,8 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         })
 
         initCardStackView()
+        initSignOutButton()
+        initMatchedListButton()
     }
     private fun initCardStackView() {
         val stackView = findViewById<CardStackView>(R.id.cardStackView)
@@ -49,12 +53,28 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         stackView.adapter = adapter
     }
 
+    private fun initSignOutButton() {
+        val signOutButton = findViewById<Button>(R.id.signOutButton)
+        signOutButton.setOnClickListener {
+            auth.signOut()
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
+    }
+
+    private fun initMatchedListButton() {
+        val matchedListButton = findViewById<Button>(R.id.matchListButton)
+        matchedListButton.setOnClickListener {
+
+            startActivity(Intent(this, MatchedUserActivity::class.java))
+        }
+    }
+
     private fun getCurrentUserID(): String {
         if (auth.currentUser == null) {
             Toast.makeText(this, "로그인이 되어있지않습니다.", Toast.LENGTH_SHORT).show()
             finish()
         }
-
         return auth.currentUser.uid
     }
 
@@ -131,6 +151,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
             .child(getCurrentUserID())
             .setValue(true)
 
+        saveMatchIfOtherUserLikedMe(card.userId)
         //매칭이 된 시점
 
         Toast.makeText(this, "${card.name}님을 Like 하셨습니다.", Toast.LENGTH_SHORT ).show()
@@ -148,6 +169,30 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
             .setValue(true)
 
         Toast.makeText(this, "${card.name}님을 disLike 하셨습니다.", Toast.LENGTH_SHORT ).show()
+    }
+
+    private fun saveMatchIfOtherUserLikedMe(otherUserId: String) {
+        val otherUserDB = usersDb.child(getCurrentUserID()).child("likedBy").child("like").child(otherUserId)
+        otherUserDB.addListenerForSingleValueEvent(object : ValueEventListener{
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(snapshot.value == true) {
+                    usersDb.child(getCurrentUserID())
+                        .child("likedBy")
+                        .child("match")
+                        .child(otherUserId)
+                        .setValue(true)
+
+                    usersDb.child(otherUserId)
+                        .child("likedBy")
+                        .child("match")
+                        .child(getCurrentUserID())
+                        .setValue(true)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
 
