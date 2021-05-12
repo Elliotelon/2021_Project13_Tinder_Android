@@ -14,6 +14,12 @@ import com.yuyakaido.android.cardstackview.CardStackLayoutManager
 import com.yuyakaido.android.cardstackview.CardStackListener
 import com.yuyakaido.android.cardstackview.CardStackView
 import com.yuyakaido.android.cardstackview.Direction
+import fastcampus.aop.part3.chapter05.DBKey.Companion.DIS_LIKE
+import fastcampus.aop.part3.chapter05.DBKey.Companion.LIKE
+import fastcampus.aop.part3.chapter05.DBKey.Companion.LIKED_BY
+import fastcampus.aop.part3.chapter05.DBKey.Companion.NAME
+import fastcampus.aop.part3.chapter05.DBKey.Companion.USERS
+import fastcampus.aop.part3.chapter05.DBKey.Companion.USER_ID
 
 class LikeActivity : AppCompatActivity(), CardStackListener {
 
@@ -29,12 +35,12 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_like)
 
-        usersDb = FirebaseDatabase.getInstance().reference.child("Users")
+        usersDb = FirebaseDatabase.getInstance().reference.child(USERS)
 
         val currentUserDB = usersDb.child(getCurrentUserID())
         currentUserDB.addListenerForSingleValueEvent(object:ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.child("name").value == null) {
+                if (snapshot.child(NAME).value == null) {
                     showNameInputPopup()
                     return
                 }
@@ -81,14 +87,14 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
     fun getUnSelectedUsers() {
         usersDb.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, s: String?) {
-                if (snapshot.child("userId").value != getCurrentUserID()
-                    && snapshot.child("likedBy").child("like").hasChild(getCurrentUserID()).not()
-                    && snapshot.child("likedBy").child("disLike").hasChild(getCurrentUserID()).not()) {
+                if (snapshot.child(USER_ID).value != getCurrentUserID()
+                    && snapshot.child(LIKED_BY).child(LIKE).hasChild(getCurrentUserID()).not()
+                    && snapshot.child(LIKED_BY).child(DIS_LIKE).hasChild(getCurrentUserID()).not()) {
 
-                    val userId = snapshot.child("userId").value.toString()
+                    val userId = snapshot.child(USER_ID).value.toString()
                     var name = "undecided"
-                    if (snapshot.child("name").value != null) {
-                        name = snapshot.child("name").value.toString()
+                    if (snapshot.child(NAME).value != null) {
+                        name = snapshot.child(NAME).value.toString()
                     }
 
                     cardItems.add(CardItem(userId, name))
@@ -99,7 +105,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
 
             override fun onChildChanged(snapshot: DataSnapshot, s: String?) {
                 cardItems.find {it.userId == snapshot.key}?.let {
-                    it.name = snapshot.child("name").value.toString()
+                    it.name = snapshot.child(NAME).value.toString()
                 }
                 adapter.submitList(cardItems)
                 adapter.notifyDataSetChanged()
@@ -114,9 +120,9 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
     private fun showNameInputPopup() {
         val editText = EditText(this)
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("이름을 입력해주세요")
+        builder.setTitle(R.string.write_name)
             .setView(editText)
-            .setPositiveButton("확인") { _, _ ->
+            .setPositiveButton("저장") { _, _ ->
                 if (editText.text.isEmpty()) {
                     showNameInputPopup()
                 } else {

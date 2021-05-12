@@ -2,5 +2,6 @@
     <string name="app_name">aop-part3-chapter05</string>
     <string name="facebook_app_id">524493751901224</string>
     <string name="fb_login_protocol_scheme">fb524493751901224</string>
+    <string name="write_name">이름을 입력해주세요</string>
 
 </resources>
