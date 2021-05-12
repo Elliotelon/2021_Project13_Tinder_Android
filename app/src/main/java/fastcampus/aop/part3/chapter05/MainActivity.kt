@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         if(auth.currentUser == null) {
-            startActivity(Intent(this, LoginAcitivity::class.java))
+            startActivity(Intent(this, LoginActivity::class.java))
         }
     }
 }
